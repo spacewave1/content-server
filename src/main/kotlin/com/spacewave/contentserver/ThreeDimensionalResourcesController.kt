@@ -8,17 +8,26 @@ import java.io.File
 import java.io.InputStream
 import java.io.DataInputStream
 
+fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x".format(eachByte)}
+
 @Controller
 class ThreeDimensionalResourcesController {
 
     @MessageMapping("/fbx-models")
     @SendTo("/topic/fileAccess")
-    fun getResource(fileAccess: FileAccess) : ThreeDimensionalResource {
+    fun getFbxResource(fileAccess: FileAccess) : ThreeDimensionalResource {
     	val fileName = fileAccess.fileName
 
-    	// TODO: Figure out how to transport binary files
-    	val fileContent : String = DataInputStream(File("src/main/resources/threeDimensional/$fileName.fbx").inputStream())readFully()
-        return ThreeDimensionalResource(fileContent, "fbx");
+    	val fileContent : ByteArray = File("src/main/resources/threeDimensional/$fileName.fbx").readBytes()
+        return ThreeDimensionalResource(fileContent.toHex(), "fbx");
     }
 
+    @MessageMapping("/gltf-models")
+    @SendTo("/topic/fileAccess")
+    fun getGltfResource(fileAccess: FileAccess) : ThreeDimensionalResource {
+    	val fileName = fileAccess.fileName
+
+    	val fileContent : String = File("src/main/resources/threeDimensional/$fileName.gltf").readText(Charsets.UTF_8)
+        return ThreeDimensionalResource(fileContent, "gltf");
+    }
 }
